@@ -158,25 +158,83 @@
 - `POST /v1/auth/register`
 - `POST /v1/auth/login`
 - `POST /v1/auth/logout`
+- `POST /v1/auth/refresh`
+- `POST /v1/auth/password/forgot`
+- `POST /v1/auth/password/reset`
+- `PATCH /v1/auth/password`
 
 ### 11.2 User & Preferences
 - `GET /v1/users/me`
 - `PATCH /v1/users/me`
-- `POST /v1/users/me/preferences`
+- `PUT /v1/users/me/preferences`
+- `GET /v1/users/me/preferences`
+- `POST /v1/users/me/devices`
+- `DELETE /v1/users/me/devices/{id}`
+- `GET /v1/users/me/privacy/requests`
+- `POST /v1/users/me/privacy/requests`
 
-### 11.3 Events
+### 11.3 Cities & Categories
+- `GET /v1/cities`
+- `GET /v1/categories`
+- `GET /v1/venues` (filters: city, radius, name)
+
+### 11.4 Events & Occurrences
 - `GET /v1/events` (filters: city, radius, category, date range, price, 18+)
 - `GET /v1/events/{id}`
+- `GET /v1/events/{id}/images`
+- `GET /v1/events/{id}/occurrences`
+- `GET /v1/occurrences` (filters: city, radius, category, date range, price, 18+)
+- `GET /v1/occurrences/{id}`
+
+### 11.5 Saved Events & Notifications
 - `POST /v1/events/{id}/save`
 - `DELETE /v1/events/{id}/save`
+- `PATCH /v1/events/{id}/save` (toggle `notify_enabled`)
+- `GET /v1/users/me/saved-events`
+- `GET /v1/users/me/notifications`
 
-### 11.4 Map
+### 11.6 Map
 - `GET /v1/events/map` (bbox or lat/lon + radius)
+- `GET /v1/occurrences/map` (bbox or lat/lon + radius)
 
-### 11.5 Admin
+### 11.7 Reports & Privacy
+- `POST /v1/events/{id}/reports`
+- `GET /v1/users/me/reports`
+
+### 11.8 Admin
+- `GET /v1/admin/events` (filters: status, source, city, date range)
 - `POST /v1/admin/events`
 - `PATCH /v1/admin/events/{id}`
 - `POST /v1/admin/events/{id}/approve`
+- `POST /v1/admin/events/{id}/reject`
+- `GET /v1/admin/events/{id}/occurrences`
+- `GET /v1/admin/occurrences` (filters: city, date range)
+- `POST /v1/admin/occurrences`
+- `PATCH /v1/admin/occurrences/{id}`
+- `POST /v1/admin/occurrences/{id}/cancel`
+- `GET /v1/admin/categories`
+- `POST /v1/admin/categories`
+- `PATCH /v1/admin/categories/{id}`
+- `POST /v1/admin/categories/{id}/deactivate`
+- `GET /v1/admin/sources`
+- `POST /v1/admin/sources`
+- `PATCH /v1/admin/sources/{id}`
+- `POST /v1/admin/sources/{id}/deactivate`
+- `GET /v1/admin/venues` (filters: city, name)
+- `POST /v1/admin/venues`
+- `PATCH /v1/admin/venues/{id}`
+- `POST /v1/admin/venues/{id}/merge`
+- `POST /v1/admin/notifications`
+- `GET /v1/admin/notifications`
+- `PATCH /v1/admin/notifications/{id}`
+- `GET /v1/admin/reports`
+- `PATCH /v1/admin/reports/{id}`
+- `GET /v1/admin/privacy/requests`
+- `PATCH /v1/admin/privacy/requests/{id}`
+- `GET /v1/admin/ingestion/runs`
+- `GET /v1/admin/ingestion/runs/{id}`
+- `GET /v1/admin/ingestion/payloads` (filters: source, date range)
+- `GET /v1/admin/audit-logs`
 
 ## 12) Front-End (Admin Panel)
 **Framework:** Nuxt.js (preferred) or Next.js.
@@ -192,57 +250,174 @@
 - **Notifications:** Compose and send push notifications for announcements and saved-event reminders.
 
 ## 13) Data Model (Initial)
-### 13.1 Event
+### 13.1 City
+- `id` (UUID)
+- `name` (string)
+- `region` (string)
+- `country` (string)
+- `timezone` (string)
+- `latitude` / `longitude` (float)
+- `default_radius_km` (int)
+- `is_active` (bool)
+- `created_at` / `updated_at`
+
+### 13.2 Venue
+- `id` (UUID)
+- `name` (string)
+- `address_line1` / `address_line2` (string, nullable)
+- `city_id` (UUID)
+- `region` / `postal_code` / `country` (string)
+- `latitude` / `longitude` (float)
+- `timezone` (string)
+- `phone` (string, nullable)
+- `website_url` (string, nullable)
+- `created_at` / `updated_at`
+
+### 13.3 EventSource
+- `id` (UUID)
+- `name` (string)
+- `type` (enum: api, manual, scrape)
+- `attribution_text` (string, nullable)
+- `terms_url` (string, nullable)
+- `is_active` (bool)
+- `created_at` / `updated_at`
+
+### 13.4 EventCategory
+- `id` (UUID)
+- `slug` (string, unique)
+- `name` (string)
+- `is_active` (bool)
+- `created_at` / `updated_at`
+
+### 13.5 Event
 - `id` (UUID)
 - `title` (string)
 - `description` (text)
-- `category` (enum)
-- `start_time` / `end_time` (timestamp)
-- `city` / `region` / `country` (string)
-- `location_name` (string)
-- `latitude` / `longitude` (float)
-- `price_min` / `price_max` (decimal)
-- `ticket_url` (string)
-- `image_url` (string)
-- `is_18_plus` (bool)
-- `source` (enum: eventbrite, ticketmaster, meetup, manual)
 - `status` (enum: pending, approved, rejected)
+- `is_18_plus` (bool)
+- `price_min` / `price_max` (decimal, nullable)
+- `currency` (string)
+- `ticket_url` (string, nullable)
+- `source_id` (UUID)
+- `source_event_id` (string)
+- `source_url` (string, nullable)
+- `organizer_name` (string, nullable)
 - `created_at` / `updated_at`
 
-### 13.2 User
+### 13.6 EventOccurrence
+- `id` (UUID)
+- `event_id` (UUID)
+- `venue_id` (UUID, nullable for online events)
+- `city_id` (UUID)
+- `start_time` / `end_time` (timestamp)
+- `timezone` (string)
+- `is_online` (bool)
+- `created_at` / `updated_at`
+
+### 13.7 EventCategoryMap
+- `id` (UUID)
+- `event_id` (UUID)
+- `category_id` (UUID)
+- `created_at`
+
+### 13.8 EventImage
+- `id` (UUID)
+- `event_id` (UUID)
+- `url` (string)
+- `width` / `height` (int, nullable)
+- `is_primary` (bool)
+- `source` (string)
+- `created_at`
+
+### 13.9 IngestionRun
+- `id` (UUID)
+- `source_id` (UUID)
+- `started_at` / `finished_at` (timestamp)
+- `status` (enum: success, partial, failed)
+- `events_fetched` / `events_created` / `events_updated` (int)
+- `error_summary` (text, nullable)
+
+### 13.10 RawProviderPayload
+- `id` (UUID)
+- `source_id` (UUID)
+- `source_event_id` (string)
+- `payload_json` (jsonb)
+- `checksum` (string)
+- `fetched_at` (timestamp)
+
+### 13.11 User
 - `id` (UUID)
 - `email` (string)
 - `password_hash` (string)
 - `name` (string)
-- `city` (string)
+- `city_id` (UUID)
 - `radius_km` (int)
-- `age_confirmed` (bool)
+- `age_confirmed_at` (timestamp, nullable)
 - `role` (enum: user, admin)
 - `notification_opt_in` (bool)
-- `data_export_requested_at` (timestamp, nullable)
-- `deleted_at` (timestamp, nullable)
+- `last_login_at` (timestamp, nullable)
+- `status` (enum: active, suspended, deleted)
 - `created_at` / `updated_at`
 
-### 13.3 UserPreference
+### 13.12 UserPreference
 - `id` (UUID)
 - `user_id` (UUID)
-- `category` (enum)
+- `category_id` (UUID)
 - `created_at`
 
-### 13.4 SavedEvent
+### 13.13 SavedEvent
 - `id` (UUID)
 - `user_id` (UUID)
 - `event_id` (UUID)
+- `notify_enabled` (bool)
 - `created_at`
 
-### 13.5 EventReport
+### 13.14 UserDevice
+- `id` (UUID)
+- `user_id` (UUID)
+- `platform` (enum: ios, android, web)
+- `push_token` (string)
+- `last_seen_at` (timestamp, nullable)
+- `created_at` / `updated_at`
+
+### 13.15 Notification
+- `id` (UUID)
+- `type` (enum: saved_event_reminder, city_announcement)
+- `title` / `body` (string)
+- `city_id` (UUID, nullable)
+- `event_id` (UUID, nullable)
+- `scheduled_at` / `sent_at` (timestamp, nullable)
+- `status` (enum: draft, scheduled, sent, failed)
+- `created_by_admin_id` (UUID, nullable)
+- `created_at` / `updated_at`
+
+### 13.16 EventReport
 - `id` (UUID)
 - `user_id` (UUID)
 - `event_id` (UUID)
 - `reason` (string)
-- `details` (text)
+- `details` (text, nullable)
 - `status` (enum: pending, reviewed, resolved)
+- `reviewed_by_admin_id` (UUID, nullable)
+- `resolved_at` (timestamp, nullable)
 - `created_at` / `updated_at`
+
+### 13.17 PrivacyRequest
+- `id` (UUID)
+- `user_id` (UUID)
+- `type` (enum: export, deletion)
+- `status` (enum: requested, in_progress, completed, rejected)
+- `requested_at` / `completed_at` (timestamp, nullable)
+- `created_at` / `updated_at`
+
+### 13.18 AdminAuditLog
+- `id` (UUID)
+- `admin_user_id` (UUID)
+- `action` (string)
+- `entity_type` (string)
+- `entity_id` (UUID)
+- `metadata_json` (jsonb, nullable)
+- `created_at`
 
 ## 14) Ingestion & Normalization
 - Scheduled ingestion jobs every 30–60 minutes.
@@ -282,10 +457,33 @@
 - Ongoing costs for external API usage.
 
 ## 19) Milestones (Suggested)
-1. **Week 1–2:** DB schema + ingestion pipeline (1 provider).
-2. **Week 3–4:** Core API + event feed + filters.
-3. **Week 5–6:** Mobile integration + onboarding + favorites.
-4. **Week 7–8:** Admin portal + manual event entry.
+**Assumes 1 full-stack engineer + part-time product/QA/DevOps support. Estimates include testing, bug fixing, and release hardening.**
+
+1. **Weeks 1–2 (Best 1 / Most-likely 2 / Worst 3): Discovery + architecture**
+   - Finalize requirements, user flows, and MVP scope
+   - Data model + API contract draft
+   - Cloud architecture + CI/CD plan
+2. **Weeks 3–5 (Best 2 / Most-likely 3 / Worst 4): Core backend foundations**
+   - PostgreSQL schema + migrations
+   - Auth + user/profile/preferences endpoints
+   - Ingestion pipeline for 1 provider + normalization + dedupe
+   - Basic admin approval workflow
+3. **Weeks 6–8 (Best 2 / Most-likely 3 / Worst 4): Event feed + search + map**
+   - Events API (filters, pagination, map endpoints)
+   - Redis caching + rate limiting
+   - Provider attribution + image handling
+4. **Weeks 9–11 (Best 2 / Most-likely 3 / Worst 4): Mobile + onboarding**
+   - Onboarding questionnaire + preference management
+   - Favorites/save flow + notification opt-in
+   - Map view integration + event details UX polish
+5. **Weeks 12–14 (Best 2 / Most-likely 3 / Worst 4): Admin portal + manual events**
+   - Event CRUD, review queue, and status management
+   - Notification composer (city announcements + saved-event reminders)
+   - Audit logging + basic analytics dashboard
+6. **Weeks 15–16 (Best 1 / Most-likely 2 / Worst 3): QA, compliance, launch readiness**
+   - End-to-end regression testing + bug fixing
+   - Data export/deletion flows and audit trails
+   - Production monitoring, alerting, and go-live checklist
 
 ## 20) Daily Plan (Single Full-Stack Engineer)
 

@@ -111,3 +111,11 @@ When asked about a project, feature, or estimation:
 - Prefer clarity over optimism
 
 Your responsibility is to protect project success, not to please with optimistic timelines.
+
+## Available Specialist Roles
+
+Additional specialist perspectives are defined in:
+
+- AGENT_PRODUCT.md — product scope and MVP validation
+- AGENT_QA.md — testing, edge cases, release readiness
+- AGENT_DEVOPS.md — infrastructure and production risks

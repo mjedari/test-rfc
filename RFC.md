@@ -158,25 +158,83 @@
 - `POST /v1/auth/register`
 - `POST /v1/auth/login`
 - `POST /v1/auth/logout`
+- `POST /v1/auth/refresh`
+- `POST /v1/auth/password/forgot`
+- `POST /v1/auth/password/reset`
+- `PATCH /v1/auth/password`
 
 ### 11.2 User & Preferences
 - `GET /v1/users/me`
 - `PATCH /v1/users/me`
-- `POST /v1/users/me/preferences`
+- `PUT /v1/users/me/preferences`
+- `GET /v1/users/me/preferences`
+- `POST /v1/users/me/devices`
+- `DELETE /v1/users/me/devices/{id}`
+- `GET /v1/users/me/privacy/requests`
+- `POST /v1/users/me/privacy/requests`
 
-### 11.3 Events
+### 11.3 Cities & Categories
+- `GET /v1/cities`
+- `GET /v1/categories`
+- `GET /v1/venues` (filters: city, radius, name)
+
+### 11.4 Events & Occurrences
 - `GET /v1/events` (filters: city, radius, category, date range, price, 18+)
 - `GET /v1/events/{id}`
+- `GET /v1/events/{id}/images`
+- `GET /v1/events/{id}/occurrences`
+- `GET /v1/occurrences` (filters: city, radius, category, date range, price, 18+)
+- `GET /v1/occurrences/{id}`
+
+### 11.5 Saved Events & Notifications
 - `POST /v1/events/{id}/save`
 - `DELETE /v1/events/{id}/save`
+- `PATCH /v1/events/{id}/save` (toggle `notify_enabled`)
+- `GET /v1/users/me/saved-events`
+- `GET /v1/users/me/notifications`
 
-### 11.4 Map
+### 11.6 Map
 - `GET /v1/events/map` (bbox or lat/lon + radius)
+- `GET /v1/occurrences/map` (bbox or lat/lon + radius)
 
-### 11.5 Admin
+### 11.7 Reports & Privacy
+- `POST /v1/events/{id}/reports`
+- `GET /v1/users/me/reports`
+
+### 11.8 Admin
+- `GET /v1/admin/events` (filters: status, source, city, date range)
 - `POST /v1/admin/events`
 - `PATCH /v1/admin/events/{id}`
 - `POST /v1/admin/events/{id}/approve`
+- `POST /v1/admin/events/{id}/reject`
+- `GET /v1/admin/events/{id}/occurrences`
+- `GET /v1/admin/occurrences` (filters: city, date range)
+- `POST /v1/admin/occurrences`
+- `PATCH /v1/admin/occurrences/{id}`
+- `POST /v1/admin/occurrences/{id}/cancel`
+- `GET /v1/admin/categories`
+- `POST /v1/admin/categories`
+- `PATCH /v1/admin/categories/{id}`
+- `POST /v1/admin/categories/{id}/deactivate`
+- `GET /v1/admin/sources`
+- `POST /v1/admin/sources`
+- `PATCH /v1/admin/sources/{id}`
+- `POST /v1/admin/sources/{id}/deactivate`
+- `GET /v1/admin/venues` (filters: city, name)
+- `POST /v1/admin/venues`
+- `PATCH /v1/admin/venues/{id}`
+- `POST /v1/admin/venues/{id}/merge`
+- `POST /v1/admin/notifications`
+- `GET /v1/admin/notifications`
+- `PATCH /v1/admin/notifications/{id}`
+- `GET /v1/admin/reports`
+- `PATCH /v1/admin/reports/{id}`
+- `GET /v1/admin/privacy/requests`
+- `PATCH /v1/admin/privacy/requests/{id}`
+- `GET /v1/admin/ingestion/runs`
+- `GET /v1/admin/ingestion/runs/{id}`
+- `GET /v1/admin/ingestion/payloads` (filters: source, date range)
+- `GET /v1/admin/audit-logs`
 
 ## 12) Front-End (Admin Panel)
 **Framework:** Nuxt.js (preferred) or Next.js.

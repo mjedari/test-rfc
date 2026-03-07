@@ -37,7 +37,8 @@
 - **Provider attribution:** Display event source on details.
 - **Push notifications:** Reminders and updates (limited to saved events and city-wide announcements).
 - **Admin portal:** Event review and manual input to fill gaps.
-- **Web platform:** User access to feed, search, map, profile, and preferences on web.
+
+**Explicitly deferred to Phase 2:** Web user platform (user access to feed, search, map on web).
 
 ## 5) Event Categories (MVP Required)
 - Concerts / live music
@@ -124,6 +125,7 @@
 - Meetup API
 - Map provider (Mapbox or Google Maps)
 - Push notifications (Firebase Cloud Messaging / APNs)
+- Transactional email (AWS SES)
 
 ## 10) Technology Stack
 ### 10.1 Backend & Services
@@ -140,18 +142,27 @@
 - Event providers: Eventbrite, Ticketmaster, Meetup.
 - Maps: Mapbox or Google Maps.
 - Push notifications: Firebase Cloud Messaging (FCM) / APNs.
+- Transactional email: AWS SES (password reset, account verification).
 
-### 10.4 Admin Front-End
+### 10.4 Mobile
+- React Native (iOS + Android from a single codebase).
+
+### 10.5 Admin Front-End
 - Admin portal framework: Nuxt.js (preferred) or Next.js.
 
-### 10.5 Deployment on AWS
+### 10.6 Deployment on AWS
 - Compute: ECS Fargate (API + worker services).
 - Database: RDS PostgreSQL (automated backups; optional read replica).
 - Cache: ElastiCache Redis.
 - Object storage: S3.
 - Networking: VPC + public/private subnets + ALB.
 - Secrets: AWS Secrets Manager.
+- Email: AWS SES for transactional email (password reset, account verification).
 - Monitoring: CloudWatch logs/metrics + alarms; optional AWS X-Ray tracing.
+
+### 10.7 Estimated Infrastructure Cost
+- **$250–$400/month** (ECS Fargate, RDS, ElastiCache, S3, SES, CloudWatch, ALB).
+- Excludes map provider billing (Mapbox or Google Maps) and paid event API tiers.
 
 ## 11) API Surface (REST)
 ### 11.1 Auth
@@ -432,41 +443,66 @@
 - Maintain audit logs for admin actions.
 
 ## 18) Risks & Open Questions
-- Coverage gaps if provider APIs are limited.
-- Licensing requirements for images and text content.
-- Ongoing costs for external API usage.
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| Provider API coverage gaps | Medium | High | Start with 1 provider + manual admin entry; add 2nd provider early if needed |
+| Map provider costs/limits | Medium | Medium | Decide Mapbox vs Google in Sprint 0; enforce usage limits + caching |
+| Part-time resources become bottleneck | High | High | Designer must be 1 sprint ahead on designs; define backup plan for admin dev |
+| API access not secured before Sprint 2 | Medium | Critical | Assign API key acquisition to Sprint 0 with a hard deadline |
+| App store rejection | Medium | High | Include privacy labels, data disclosures, and review guideline compliance in Sprint 6 |
+| Client decision latency | High | High | Product Owner must respond within 1–2 business days; escalation path defined in Sprint 0 |
+| Licensing requirements for images/text | Low | Medium | Review provider terms in Sprint 0; store attribution data |
+| Ongoing costs for external API usage | Low | Medium | Monitor usage; enforce rate limits and caching |
 
-## 19) Milestones (Suggested)
-**Assumes 1 full-stack engineer + part-time product/QA/DevOps support. Estimates include testing, bug fixing, and release hardening.**
+## 19) Team Composition
+| Role | Allocation | Primary Responsibilities |
+| --- | --- | --- |
+| GoLang Developer | Full-time | Backend APIs, data model, integrations, performance, security |
+| React Native Developer | Full-time | Mobile app (iOS/Android), UI implementation, state management |
+| Project Manager & Team Lead | Full-time | Delivery planning, Scrum, stakeholder comms, release coordination |
+| UI/UX Designer | Part-time (~40%) | UX flows, wireframes, UI kit, prototypes, handoff specs |
+| Admin Panel Developer (Nuxt/Next) | Part-time (~50%) | Admin portal UI (review queue, CRUD, approvals) |
 
-1. **Weeks 1–2 (Best 1 / Most-likely 2 / Worst 3): Discovery + architecture**
-   - Finalize requirements, user flows, and MVP scope
+## 20) Milestones (Suggested)
+**Assumes the team composition above. Estimates include testing, bug fixing, and release hardening. All sprints are 2 weeks (10 working days).**
+
+### Critical Path
+> Sprint 0 (design + decisions) → Sprint 1 (auth + API) → Sprint 2 (ingestion — external API dependency) → Sprint 3 (feed/map — depends on Sprint 2 data) → Sprint 6 (stabilization + app store submission)
+
+0. **Sprint 0 — Weeks 1–2: Discovery + Setup**
+   - Finalize MVP scope, success metrics, and user flows
+   - UX flows + clickable prototype for main journeys
    - Data model + API contract draft
-   - Cloud architecture + CI/CD plan
-2. **Weeks 3–5 (Best 2 / Most-likely 3 / Worst 4): Core backend foundations**
-   - PostgreSQL schema + migrations
-   - Auth + user/profile/preferences endpoints
-   - Ingestion pipeline for 1 provider + normalization + dedupe
-   - Basic admin approval workflow
-3. **Weeks 6–8 (Best 2 / Most-likely 3 / Worst 4): Event feed + search + map**
-   - Events API (filters, pagination, map endpoints)
-   - Redis caching + rate limiting
-   - Provider attribution + image handling
-4. **Weeks 9–11 (Best 2 / Most-likely 3 / Worst 4): Mobile + onboarding**
-   - Onboarding questionnaire + preference management
-   - Favorites/save flow + notification opt-in
-   - Map view integration + event details UX polish
-5. **Weeks 12–14 (Best 2 / Most-likely 3 / Worst 4): Admin portal + manual events**
-   - Event CRUD, review queue, and status management
-   - Notification composer (city announcements + saved-event reminders)
-   - Audit logging + basic analytics dashboard
-6. **Weeks 15–16 (Best 1 / Most-likely 2 / Worst 3): QA, compliance, launch readiness**
-   - End-to-end regression testing + bug fixing
-   - Data export/deletion flows and audit trails
-   - Production monitoring, alerting, and go-live checklist
-
-## 20) Daily Plan (Single Full-Stack Engineer)
-
+   - Cloud architecture + CI/CD baseline (staging deployed)
+   - Key decisions resolved: map provider, event providers (API access secured), admin portal MVP scope
+   - Initial Product Backlog (ordered) with acceptance criteria
+1. **Sprint 1 — Weeks 3–4: Foundations & MVP Skeleton**
+   - Backend: API scaffold, JWT auth, users/me, cities/categories endpoints
+   - Mobile: onboarding skeleton, auth screens, basic navigation, profile shell
+   - DevOps: staging environment baseline, logging/health checks
+   - DB schema migrations for users, cities, categories
+2. **Sprint 2 — Weeks 5–6: Ingestion + Admin MVP**
+   - Backend: ingestion worker for 1 provider (Eventbrite or Ticketmaster), normalization + storage
+   - Admin: minimal review queue + create/edit/approve/reject events
+   - Mobile: feed list (stubbed) + event detail page (first pass)
+3. **Sprint 3 — Weeks 7–8: Feed + Search/Filters + Map**
+   - Backend: feed endpoints, filters, pagination, map endpoints (bbox/radius), Redis caching
+   - Mobile: feed + filters UI + map view + map interactions
+   - Optional: second provider integration
+4. **Sprint 4 — Weeks 9–10: Onboarding + Preferences + Favorites**
+   - Backend: preferences endpoints, save/unsave, saved list, 18+ gating
+   - Mobile: onboarding questionnaire finalized, edit preferences, favorites flows
+5. **Sprint 5 — Weeks 11–12: Notifications + Reporting + Privacy**
+   - Backend: device registration, push notifications (FCM/APNs), event reporting, privacy export/deletion
+   - Admin: notification composer + reports dashboard
+   - Mobile: notification settings, report flow, privacy request UI
+6. **Sprint 6 — Weeks 13–14: Stabilization + Launch Readiness**
+   - Regression testing, performance checks (feed P95 < 300ms), security hardening
+   - Monitoring/alerts baseline, operational runbook
+   - App store submission readiness (privacy labels, data disclosures)
+   - Data seeding plan: pre-populate events via ingestion before launch
+7. **Sprint 7 — Weeks 15–16: Buffer (as needed)**
+   - Reserved for: provider integration issues, app store review feedback, UX polish, scope changes
 
 ## 21) Acceptance Criteria (MVP)
 - Users can browse and filter events for LA/Montreal.

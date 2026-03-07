@@ -119,3 +119,4 @@ Additional specialist perspectives are defined in:
 - AGENT_PRODUCT.md — product scope and MVP validation
 - AGENT_QA.md — testing, edge cases, release readiness
 - AGENT_DEVOPS.md — infrastructure and production risks
+- AGENT_PM.md — delivery planning, stakeholder alignment, change control
